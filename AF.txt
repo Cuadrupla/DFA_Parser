@@ -20,7 +20,7 @@ Queue = []
 Function ParseWordAFN(p, k):
 	If p in F and k == len(word):
 		Return True
-	Else:
+	Else If k != len(word):
 		For i = p, len(Q): # cauta potentialele stari care au litera corespunzatoare
 			If word[k] == δ(p, i):
 				Queue.push(i)
