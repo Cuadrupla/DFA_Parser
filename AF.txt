@@ -37,3 +37,6 @@ Function ParseWordAFN(p, k):
 EndFunction
 
 call ParseWordAFN(S, 0)
+
+# AFN-Lambda
+# Se poate folosi un WildCard prin care se poate face legatura prin configuratii (se va simboliza prin #)
