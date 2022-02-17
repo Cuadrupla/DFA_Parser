@@ -1,0 +1,38 @@
+// 228 - sigma | 235 - delta
+Σ, δ, Q, F, S, word - var globala
+
+Function ParseWordAFD(p, k):
+	If p in F and k == len(word):
+		Return True
+	Else:
+		For i = p, len(Q): # cauta litera din cuvant
+			If word[k] == δ(p, i):
+				ParseWord(i, k + 1)
+			EndIf
+		EndFor
+		Return False
+	EndIf
+EndFunction
+
+call ParseWordAFD(S, 0)
+
+Queue = []
+Function ParseWordAFN(p, k):
+	If p in F and k == len(word):
+		Return True
+	Else:
+		For i = p, len(Q): # cauta potentialele stari care au litera corespunzatoare
+			If word[k] == δ(p, i):
+				Queue.push(i)
+			
+			While Queue != Φ: # daca coada nu este vida
+				current = Queue.pop() # preluam elementul din coada si il eliminam
+				
+				ParseWord(current, k + 1)
+			EndWhile
+		EndFor
+		Return False
+	EndIf
+EndFunction
+
+call ParseWordAFN(S, 0)
