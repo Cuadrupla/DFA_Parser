@@ -33,6 +33,7 @@ Function ParseWordAFN(p, k):
 		EndFor
 		Return False
 	EndIf
+	Return False
 EndFunction
 
 call ParseWordAFN(S, 0)
