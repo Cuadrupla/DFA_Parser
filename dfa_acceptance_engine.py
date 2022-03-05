@@ -47,7 +47,6 @@ if __name__ == "__main__":
         if states[state] == "S" or states[state] == "S/F":
             start_state = state
 
-    print(states, delta)
     if start_state is not None:
         try:
             if parse_word(args.string, start_state):
