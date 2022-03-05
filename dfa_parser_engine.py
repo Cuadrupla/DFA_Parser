@@ -99,7 +99,7 @@ def validate_road(state):
     global visited
 
     visited[state] = True
-    if states[state] == 'S/F':
+    if states[state] == "S/F" or states[state] == "F":
         found = True
     else:
         for deltaState in delta[state]:
@@ -120,6 +120,7 @@ if __name__ == "__main__":
         for state in states:
             visited[state] = False
 
+        start_state = None
         for state in states:
             if states[state] == "S" or states[state] == "S/F":
                 start_state = state
