@@ -1,117 +1,132 @@
-"""
--Q - states
--sigma - alfabetul
--Delta - tranzitiile
--S - start
--F - multimea de finish
-"""
-def citire(sigma, delta, St, F, Q):
-    f = open("dfa_config_file.txt")
+import argparse, pathlib
+
+
+def reading(sigma, delta, states, file_name):
+    f = open(file_name)
     linie = f.readline()
+
     while linie:
-        linie=linie[:(len(linie)-1)]
-        if linie[0] != "#":
-            if linie == "Sigma:":
-                linie = f.readline()
-                while linie != "End\n" and linie != "End":
-                    sigma.append(linie[0])
-                    linie = f.readline()
-            elif linie == "Transitions:":
-                linie = f.readline()
-                while linie != "End" and linie != "End\n":
-                    linie = linie[:(len(linie) - 1)]
-                    linie = linie.split(", ")
-                    delta_key = linie[0]
-                    if delta_key not in delta.keys():
-                         delta[delta_key] = {}
-                    state_key=linie[2]
-                    delta[delta_key][state_key]=linie[1]
-                    linie = f.readline()
-            elif linie == "States:":
-                linie = f.readline()
-                while linie != "End" and linie != "End\n":
-                    linie = linie[:(len(linie) - 1)]
-                    linie = linie.split(", ")
-                    if len(linie) != 1:
-                        if linie[1] == 'S':
-                            St.append(linie[0])
+        linie = linie[:(len(linie) - 1)]
+        if linie[0] == "#":
+            linie = f.readline()
+            continue
 
-                        elif linie[1] == 'F':
-                            F.append(linie[0])
-                    Q.append(linie[0])
+        if linie == "Sigma:":
+            linie = f.readline()
+            while linie.lower() != "end\n" and linie.lower() != "end":
+                if linie[0] == '#':
                     linie = f.readline()
+                    continue
+
+                sigmaLine = linie.strip().split("#")
+                sigma.append(sigmaLine[0].strip())
+
+                linie = f.readline()
+
+        elif linie == "Transitions:":
+            linie = f.readline()
+            while linie.lower() != "end" and linie.lower() != "end\n":
+                if linie[0] == "#":
+                    linie = f.readline()
+                    continue
+
+                transitionLine = linie.strip("\n").split("#")
+                transitionLine = transitionLine[0].split(",")
+                transitionLine = list(map(lambda s: s.strip(), transitionLine))
+                transitionLine = list(filter(lambda s: len(s) != 0, transitionLine))
+
+                if len(transitionLine) != 3:
+                    raise Exception(
+                        f"[DFA] Invalid Syntax at line: {linie}, we need 3 states to complete the transitions")
+
+                if transitionLine[0] not in delta.keys():
+                    delta[transitionLine[0]] = {transitionLine[2]: transitionLine[1]}
+                else:
+                    delta[transitionLine[0]][transitionLine[2]] = transitionLine[1]
+
+                linie = f.readline()
+
+        elif linie == "States:":
+            linie = f.readline()
+            while linie.lower() != "end" and linie.lower() != "end\n":
+                if linie[0] == '#':
+                    linie = f.readline()
+                    continue
+
+                statesLine = linie.strip().split("#")
+                statesLine = statesLine[0].split(",")
+
+                if len(statesLine) == 2:
+                    states[statesLine[0]] = "S" if statesLine[1].strip() == "S" else "F"
+                elif len(statesLine) > 2:
+                    states[statesLine[0]] = "S/F"
+                else:
+                    states[statesLine[0]] = "I"
+
+                linie = f.readline()
+
         linie = f.readline()
-"""CERINTE VALIDARE:        
-    -daca exista S
-    -daca F != None
-    -existenta a cel putin unui lant de la S la F
-    -daca intre 2 state-uri exista o litera care nu apartine lui sigma
-    -daca exista un state care nu apartine lui Q
-    -dintr-un state nu trb sa plece 2 tranzitii cu aceeasi litera
-"""
-
-
-def exista_lant(state, delta):
-    global vizitati
-    global ok
-    if state in F:
-        ok = 1
-    else:
-        for x in delta[state]:
-            sti = int(state[1])
-            xi = int(x[1])
-            if ok == 0 and vizitati[sti][xi] == 0:
-                vizitati[sti][xi] = 1
-                exista_lant(x, delta)
-    return ok
-
-def apartententa():
-    for dict in delta.values():
-        for lit in dict.values():
-            if lit not in sigma:
-                return 0
-    for states in delta.keys():
-        if states not in Q:
-            return 0
-    for dict in delta.values():
-        for states in dict.keys():
-            if states not in Q:
-                return 0
-    return 1
-
-def aceeasi_lit():
-    for dict in delta.values():
-        aux= set()
-        for lit in dict.values():
-            aux.add(lit)
-        if len(aux) != len(dict):
-            return 0
-    return 1
-
-def input_valid(S, F, Q, sigma, delta):
-    vizitati = [[0 for x in delta] for y in delta]
-    ok = 0
-    if S == []:
-        return 0
-    elif F == None:
-        return 0
-    elif exista_lant(*S, delta) == 0:
-        return 0
-    elif apartententa() == 0:
-        return 0
-    elif aceeasi_lit() == 0:
-        return 0
-    return 1
-
-
+    f.close()
 
 sigma = []
 delta = {}
-S = []
-F = []
-Q = []
-ok = 0
+states = {}
+visited = {}
+found = False
 
-citire(sigma, delta, S, F, Q)
-vizitati = [[0 for x in delta] for y in delta]
-print(input_valid(S, F, Q, sigma, delta))
+def validate_states():
+    return True if list(states.values()).count("S") == 1 and list(states.values()).count("F") > 0 \
+                   or list(states.values()).count("S/F") > 0 else False
+
+
+def validate_transitions():
+    if len(list(filter(lambda s: s not in list(states.keys()), delta.keys()))):
+        return False
+
+    for key in delta:
+        if len(list(filter(lambda s: s not in list(states.keys()), delta[key].keys()))):
+            return False
+        if len(list(filter(lambda s: s not in sigma, delta[key].values()))):
+            return False
+        if len(delta[key].values()) != len(set(delta[key].values())):
+            return False
+
+    return True
+
+
+def validate_road(state):
+    global found
+    global visited
+
+    visited[state] = True
+    if states[state] == 'S/F':
+        found = True
+    else:
+        for deltaState in delta[state]:
+            if not visited[deltaState] and not found:
+                validate_road(deltaState)
+                visited[deltaState] = False
+    return found
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Given a specific config file we need to parse the contents of it.')
+    parser.add_argument('file', type=pathlib.Path)
+    args = parser.parse_args()
+
+    try:
+        reading(sigma, delta, states, args.file)
+
+        for state in states:
+            visited[state] = False
+
+        for state in states:
+            if states[state] == "S" or states[state] == "S/F":
+                start_state = state
+
+        if validate_states() and validate_transitions() and start_state is not None and validate_road(start_state):
+            print("The received automata config is a valid DFA")
+        else:
+            print("The received automata config is NOT a valid DFA")
+    except Exception as exception:
+        print(exception.args)
