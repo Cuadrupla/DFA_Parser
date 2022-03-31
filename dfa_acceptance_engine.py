@@ -21,8 +21,9 @@ def parse_word(string, state):
         good = True
     elif len(string) != 0:
         for i in delta[state]:
-            if string.find(delta[state][i]) == 0:
-                parse_word(string[len(delta[state][i]):], i)
+            for j in range(0, len(delta[state][i])):
+                if string.find(delta[state][i][j]) == 0:
+                    parse_word(string[len(delta[state][i][j]):], i)
     else:
         raise Exception('[ERROR]: The given word isn\'t good')
     return good
