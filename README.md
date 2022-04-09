@@ -1,4 +1,4 @@
-# DFA_Parsers
+# DFA_Parsers - Lab 1 (Homework)
 This is a Formal and Automata Language repository for DFA Parsers
 
 ### Requirements
